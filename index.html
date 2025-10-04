@@ -164,25 +164,30 @@ function snapToColumn(block){
   if(mode==='blank') return; // no snap
   if(columns.length===0) return;
 
-  let rect = board.getBoundingClientRect();
-  let blockRect = block.getBoundingClientRect();
-  let x = blockRect.left + blockRect.width/2 - rect.left;
-  
-  // Find closest column
-  let closest = columns[0];
-  let minDist = Math.abs(x - columns[0].center);
-  for(let c of columns){
-    let dist = Math.abs(x - c.center);
-    if(dist<minDist){ minDist=dist; closest=c; }
-  }
+  const boardRect = board.getBoundingClientRect();
+  const blockRect = block.getBoundingClientRect();
+  const blockWidth = blockRect.width;
+  const blockHeight = blockRect.height;
 
-  // Snap to column horizontally
-  block.style.left = (closest.center - blockRect.width/2) + 'px';
-  
-  // Snap from top of column
-  block.style.top = closest.stackHeight + 'px';
-  closest.stackHeight += blockRect.height + 5; // stack spacing
+  // Horizontal snapping to nearest column
+  let xCenter = blockRect.left + blockWidth/2 - boardRect.left;
+  let closest = columns[0];
+  let minDist = Math.abs(xCenter - columns[0].center);
+  for(let c of columns){
+    let dist = Math.abs(xCenter - c.center);
+    if(dist < minDist){ minDist = dist; closest = c; }
+  }
+  block.style.left = (closest.center - blockWidth/2) + 'px';
+
+  // Vertical snapping from top of the board
+  block.style.top = closest.stackHeight + 'px'; // relative to board
+  // Append block to the board container so positioning is correct
+  board.appendChild(block);
+
+  // Increase stack height for next block in this column
+  closest.stackHeight += blockHeight + 5; // 5px spacing
 }
+
 
 
 // --- Create columns based on board mode ---
