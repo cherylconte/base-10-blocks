@@ -15,10 +15,12 @@
   .block { position:absolute; cursor:grab; display:flex; justify-content:center; align-items:center; user-select:none; touch-action:none; transition:transform 0.1s; }
   
   /* Realistic proportions */
- .unit { width:30px; height:30px; transform-style:preserve-3d; }
-.rod { width:12px; height:60px; transform-style:preserve-3d; }
-.flat { width:60px; height:60px; transform-style:preserve-3d; } /* corrected: now a square */
-.cube { width:120px; height:120px; transform-style:preserve-3d; }
+/* Base 10 block sizes for realistic proportions */
+.unit { width:20px; height:20px; transform-style:preserve-3d; }
+.rod { width:20px; height:200px; transform-style:preserve-3d; } /* 10× units tall */
+.flat { width:200px; height:200px; transform-style:preserve-3d; } /* 10× rods wide & high */
+.cube { width:200px; height:200px; transform-style:preserve-3d; } /* visually 10× flats */
+
 
   
   /* 3D shading */
