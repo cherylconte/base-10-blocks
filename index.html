@@ -182,23 +182,28 @@ function snapToColumn(block){
   const labelHeight = closest.element.querySelector('.column-label').offsetHeight;
   const padding = 5;
 
-  if(block.dataset.type === 'unit'){
-    // Vertical stacking with new column after 10
+ if(block.dataset.type === 'unit'){
+    // Vertical stacking with new column after 10, slightly offset to center
     if(!closest.unitStacks) closest.unitStacks = {col:0, row:0};
     let us = closest.unitStacks;
 
     const colRect = closest.element.getBoundingClientRect();
-    const leftEdge = colRect.left - boardRect.left + us.col * (blockWidth + padding);
-    const topStart = labelHeight + padding;
+    const boardRect = board.getBoundingClientRect();
+    const leftEdge = colRect.left - boardRect.left + 20 + us.col * (blockWidth + 5); // offset from left
+    const topStart = labelHeight + 5;
 
     block.style.left = leftEdge + 'px';
-    block.style.top = topStart + us.row * (blockHeight + padding) + 'px';
+    block.style.top = topStart + us.row * (blockHeight + 5) + 'px';
 
     us.row++;
     if(us.row >= 10){
         us.row = 0;
         us.col++;
     }
+
+    board.appendChild(block);
+}
+
 
   } else if(block.dataset.type === 'rod'){
     // Horizontal stacking for Tens, 10 per row
