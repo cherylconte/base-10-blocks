@@ -179,13 +179,14 @@ function snapToColumn(block){
   }
   block.style.left = (closest.center - blockWidth/2) + 'px';
 
-  // Vertical snapping from top of the board
-  block.style.top = closest.stackHeight + 'px'; // relative to board
-  // Append block to the board container so positioning is correct
+  // Vertical snapping from top of column, below the label
+  const labelHeight = closest.element.querySelector('.column-label').offsetHeight;
+  block.style.top = closest.stackHeight + labelHeight + 5 + 'px'; // 5px padding
+  // Append block to the board container
   board.appendChild(block);
 
   // Increase stack height for next block in this column
-  closest.stackHeight += blockHeight + 5; // 5px spacing
+  closest.stackHeight += blockHeight + 5; // stack spacing
 }
 
 
