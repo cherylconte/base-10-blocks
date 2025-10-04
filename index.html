@@ -15,10 +15,11 @@
   .block { position:absolute; cursor:grab; display:flex; justify-content:center; align-items:center; user-select:none; touch-action:none; transition:transform 0.1s; }
   
   /* Realistic proportions */
-  .unit { width:30px; height:30px; transform-style:preserve-3d; }
-  .rod { width:12px; height:120px; transform-style:preserve-3d; } /* thinner, taller */
-  .flat { width:120px; height:12px; transform-style:preserve-3d; } /* wider slab */
-  .cube { width:120px; height:120px; transform-style:preserve-3d; } /* large cube */
+ .unit { width:30px; height:30px; transform-style:preserve-3d; }
+.rod { width:12px; height:120px; transform-style:preserve-3d; }
+.flat { width:120px; height:120px; transform-style:preserve-3d; } /* corrected: now a square */
+.cube { width:120px; height:120px; transform-style:preserve-3d; }
+
   
   /* 3D shading */
   .block::before {
