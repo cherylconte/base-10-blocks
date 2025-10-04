@@ -5,58 +5,58 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Base 10 Blocks with Place Value Chart</title>
 <style>
-  body { font-family: Arial, sans-serif; margin:0; padding:0; display:flex; flex-direction:column; align-items:center; }
-  h2 { margin:10px; }
-  #controls { margin:10px; display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
-  button, select, input { font-size:14px; padding:5px; }
-  #topPiles { display:flex; justify-content:center; gap:50px; margin-top:10px; height:250px; }
-  .pile { width:100px; height:250px; position:relative; display:flex; flex-direction:column-reverse; align-items:center; justify-content:flex-start; }
-  
-  #board { 
-    width:90vw; 
-    height:60vh; 
-    border:2px solid #333; 
-    margin-top:20px; 
-    position:relative; 
-    overflow:hidden; 
-    background:#fff; /* white background for chart */
-    display:flex; 
-    justify-content:center; 
-  }
-  
-  .column { 
-    border-left:2px solid #333; /* dark line */
-    flex:1; 
-    position:relative; 
-    display:flex; 
-    flex-direction:column-reverse; 
-    align-items:center; 
-  }
-  .column:first-child { border-left:none; } /* first column no left line */
-  
-  .column-label {
-    position:absolute;
-    top:5px;
-    width:100%;
-    text-align:center;
-    font-weight:bold;
-    color:#333;
-    pointer-events:none;
-  }
+body { font-family: Arial, sans-serif; margin:0; padding:0; display:flex; flex-direction:column; align-items:center; }
+h2 { margin:10px; }
+#controls { margin:10px; display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+button, select, input { font-size:14px; padding:5px; }
+#topPiles { display:flex; justify-content:center; gap:50px; margin-top:10px; height:250px; }
+.pile { width:100px; height:250px; position:relative; display:flex; flex-direction:column-reverse; align-items:center; justify-content:flex-start; }
 
-  .block { position:absolute; cursor:grab; display:flex; justify-content:center; align-items:center; user-select:none; touch-action:none; transition:transform 0.1s; }
-  
-  /* Proportional Base 10 block sizes */
-  .unit { width:20px; height:20px; transform-style:preserve-3d; }
-  .rod { width:20px; height:200px; transform-style:preserve-3d; }
-  .flat { width:200px; height:200px; transform-style:preserve-3d; }
-  .block::before {
+#board { 
+  width:90vw; 
+  height:60vh; 
+  border:2px solid #333; 
+  margin-top:20px; 
+  position:relative; 
+  overflow:hidden; 
+  background:#fff;
+  display:flex; 
+  justify-content:center; 
+}
+
+.column { 
+  border-left:2px solid #333;
+  flex:1; 
+  position:relative; 
+  display:flex; 
+  flex-direction:column-reverse; 
+  align-items:center; 
+}
+.column:first-child { border-left:none; }
+
+.column-label {
+  position:absolute;
+  top:5px;
+  width:100%;
+  text-align:center;
+  font-weight:bold;
+  color:#333;
+  pointer-events:none;
+}
+
+.block { position:absolute; cursor:grab; display:flex; justify-content:center; align-items:center; user-select:none; touch-action:none; transition:transform 0.1s; }
+
+.unit { width:20px; height:20px; transform-style:preserve-3d; }
+.rod { width:20px; height:200px; transform-style:preserve-3d; }
+.flat { width:200px; height:200px; transform-style:preserve-3d; }
+
+.block::before {
     content:'';
     position:absolute; top:0; left:0; width:100%; height:100%;
     box-shadow: inset -5px -5px 10px rgba(0,0,0,0.3);
     border:1px solid #555;
     border-radius:3px;
-  }
+}
 </style>
 </head>
 <body>
@@ -159,9 +159,10 @@ function startDrag(e){
   document.addEventListener('touchend',up);
 }
 
+// --- Snap block to column based on type ---
 function snapToColumn(block){
   const mode = boardModeSelect.value;
-  if(mode==='blank') return; // no snap
+  if(mode==='blank') return;
   if(columns.length===0) return;
 
   const boardRect = board.getBoundingClientRect();
@@ -177,19 +178,46 @@ function snapToColumn(block){
     let dist = Math.abs(xCenter - c.center);
     if(dist < minDist){ minDist = dist; closest = c; }
   }
-  block.style.left = (closest.center - blockWidth/2) + 'px';
 
-  // Vertical snapping from top of column, below the label
   const labelHeight = closest.element.querySelector('.column-label').offsetHeight;
-  block.style.top = closest.stackHeight + labelHeight + 5 + 'px'; // 5px padding
-  // Append block to the board container
+  const padding = 5;
+
+  // --- Type-specific stacking ---
+  if(block.dataset.type === 'unit'){
+    // Vertical stacking for Ones
+    block.style.left = (closest.center - blockWidth/2) + 'px';
+    block.style.top = closest.stackHeight + labelHeight + padding + 'px';
+    closest.stackHeight += blockHeight + padding;
+
+  } else if(block.dataset.type === 'rod'){
+    // Horizontal stacking for Tens, 10 per row
+    if(!closest.rowStacks) closest.rowStacks = [];
+    if(closest.rowStacks.length === 0) closest.rowStacks.push(0);
+    let currentRow = closest.rowStacks.length - 1;
+    let rowCount = closest.rowStacks[currentRow];
+
+    if(rowCount >= 10){ // new row
+      closest.rowStacks.push(0);
+      currentRow++;
+      rowCount = 0;
+    }
+
+    block.style.left = closest.center - 100 + (rowCount * (blockWidth + padding)) + 'px';
+    block.style.top = labelHeight + padding + (currentRow * (blockHeight + padding)) + 'px';
+    closest.rowStacks[currentRow]++;
+
+  } else if(block.dataset.type === 'flat'){
+    // Hundreds: 2 per row
+    if(!closest.gridStacks) closest.gridStacks = {row:0, col:0};
+    let gs = closest.gridStacks;
+    block.style.left = closest.center - (blockWidth + padding)/2 + gs.col * (blockWidth + padding) + 'px';
+    block.style.top = labelHeight + padding + gs.row * (blockHeight + padding) + 'px';
+    gs.col++;
+    if(gs.col >= 2){ gs.col = 0; gs.row++; }
+  }
+
   board.appendChild(block);
-
-  // Increase stack height for next block in this column
-  closest.stackHeight += blockHeight + 5; // stack spacing
 }
-
-
 
 // --- Create columns based on board mode ---
 function setupColumns(){
@@ -215,7 +243,6 @@ function setupColumns(){
     columns.push({element:col, center:0, stackHeight:0});
   }
 
-  // Wait for layout to calculate centers
   setTimeout(()=>{
     const boardRect = board.getBoundingClientRect();
     const colDivs = board.children;
@@ -254,6 +281,7 @@ document.getElementById('reset').click();
 
 </body>
 </html>
+
 
 
 
