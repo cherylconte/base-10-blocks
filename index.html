@@ -3,96 +3,71 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Interactive Base 10 Blocks with Place Value Chart</title>
+<title>Base 10 Blocks with Place Value Chart</title>
 <style>
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-h2 { margin: 10px; }
-#controls {
-  margin: 10px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-}
-button, select, input {
-  font-size: 14px;
-  padding: 5px;
-}
-#topPiles {
-  display: flex;
-  justify-content: center;
-  gap: 50px;
-  margin-top: 10px;
-  height: 250px;
-}
-.pile {
-  width: 100px;
-  height: 250px;
-  position: relative;
-  display: flex;
-  flex-direction: column-reverse;
-  align-items: center;
-  justify-content: flex-start;
+body { font-family: Arial, sans-serif; margin:0; padding:0; display:flex; flex-direction:column; align-items:center; }
+h2 { margin:10px; }
+#controls { margin:10px; display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+button, select, input { font-size:14px; padding:5px; }
+#topPiles { display:flex; justify-content:center; gap:50px; margin-top:10px; height:250px; }
+.pile { width:100px; height:250px; position:relative; display:flex; flex-direction:column-reverse; align-items:center; justify-content:flex-start; }
+
+#board { 
+  width:90vw; 
+  height:60vh; 
+  border:2px solid #333; 
+  margin-top:20px; 
+  position:relative; 
+  overflow:hidden; 
+  background:#fff;
+  display:flex; 
+  justify-content:center; 
 }
 
-#board {
-  width: 90vw;
-  height: 60vh;
-  border: 2px solid #333;
-  margin-top: 20px;
-  position: relative;
-  overflow: hidden;
-  background: #fff;
-  display: flex;
-  justify-content: center;
+.column { 
+  border-left:2px solid #333;
+  flex:1; 
+  position:relative; 
+  display:flex; 
+  flex-direction:column-reverse; 
+  align-items:center; 
 }
-
-.column {
-  border-left: 2px solid #333;
-  flex: 1;
-  position: relative;
-  display: flex;
-  flex-direction: column-reverse;
-  align-items: flex-start;
-  background: #fff;
-}
-.column:first-child { border-left: none; }
+.column:first-child { border-left:none; }
 
 .column-label {
-  position: absolute;
-  top: 5px;
-  width: 100%;
-  text-align: center;
-  font-weight: bold;
-  color: #333;
-  pointer-events: none;
-  background: #fff;
+  position:absolute;
+  top:5px;
+  width:100%;
+  text-align:center;
+  font-weight:bold;
+  color:#333;
+  pointer-events:none;
+  background:#fff;
 }
 
-.block {
-  position: absolute;
-  cursor: grab;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  user-select: none;
-  touch-action: none;
-  transition: transform 0.1s;
-  background: var(--block-color, #00b0f0);
-  border: 1px solid #555;
-  box-shadow: inset -5px -5px 10px rgba(0,0,0,0.3);
-  border-radius: 3px;
+.block { 
+  position:absolute; 
+  cursor:grab; 
+  display:flex; 
+  justify-content:center; 
+  align-items:center; 
+  user-select:none; 
+  touch-action:none; 
+  transition:transform 0.1s; 
+  border:0.5px solid #555;
 }
-.unit { width: 20px; height: 20px; }
-.rod { width: 20px; height: 200px; }
-.flat { width: 200px; height: 200px; }
+
+.unit { width:20px; height:20px; transform-style:preserve-3d; }
+.rod { width:20px; height:200px; transform-style:preserve-3d; }
+.flat { width:200px; height:200px; transform-style:preserve-3d; }
+
+.block::before {
+    content:'';
+    position:absolute; top:0; left:0; width:100%; height:100%;
+    box-shadow: inset -5px -5px 10px rgba(0,0,0,0.3);
+    border:0.5px solid #555;
+    border-radius:3px;
+}
 </style>
 </head>
 <body>
@@ -100,15 +75,18 @@ button, select, input {
 <h2>Interactive Base 10 Blocks with Place Value Chart</h2>
 
 <div id="controls">
-  <label>Board Mode:
+  <label>Unit Color: <input type="color" id="colorUnit" value="#00b0f0"></label>
+  <label>Rod Color: <input type="color" id="colorRod" value="#00b0f0"></label>
+  <label>Flat Color: <input type="color" id="colorFlat" value="#00b0f0"></label>
+  
+  <label>Board Mode: 
     <select id="boardMode">
       <option value="blank">Blank Board</option>
       <option value="ones_tens">Place Value Chart: Ones/Tens</option>
       <option value="ones_tens_hundreds">Place Value Chart: Ones/Tens/Hundreds</option>
     </select>
   </label>
-  <label>Color A: <input type="color" id="colorA" value="#00b0f0"></label>
-  <label>Color B: <input type="color" id="colorB" value="#ffd966"></label>
+  
   <button id="addUnit">Add Unit</button>
   <button id="addRod">Add Rod</button>
   <button id="addFlat">Add Flat</button>
@@ -132,20 +110,23 @@ const piles = {
 };
 const counters = {unit:[], rod:[], flat:[]};
 const boardModeSelect = document.getElementById('boardMode');
-const colorAInput = document.getElementById('colorA');
-const colorBInput = document.getElementById('colorB');
 let columns = [];
 
-// --- Create block ---
-function createBlock(type, color='A'){
+// --- Create a block ---
+function createBlock(type){
   let block = document.createElement('div');
   block.classList.add('block', type);
   block.dataset.type = type;
-  block.style.setProperty('--block-color', color === 'A' ? colorAInput.value : colorBInput.value);
+  block.style.background = document.getElementById('color'+capitalize(type)).value;
+  block.style.left = '0px';
+  block.style.bottom = '0px';
   makeDraggable(block);
   piles[type].appendChild(block);
   counters[type].push(block);
 }
+
+// --- Capitalize helper ---
+function capitalize(str){ return str.charAt(0).toUpperCase()+str.slice(1); }
 
 // --- Make draggable ---
 function makeDraggable(block){
@@ -189,7 +170,7 @@ function startDrag(e){
   document.addEventListener('touchend',up);
 }
 
-// --- Snap block ---
+// --- Snap block to column based on type ---
 function snapToColumn(block){
   const mode = boardModeSelect.value;
   if(mode==='blank') return;
@@ -211,41 +192,43 @@ function snapToColumn(block){
   const labelHeight = closest.element.querySelector('.column-label').offsetHeight;
   const padding = 5;
   const colRect = closest.element.getBoundingClientRect();
-  const topStart = colRect.top - boardRect.top + labelHeight + padding;
 
+  // --- Type-specific stacking ---
   if(block.dataset.type === 'unit'){
     if(!closest.unitStacks) closest.unitStacks = {col:0,row:0};
     let us = closest.unitStacks;
-    const leftEdge = colRect.left - boardRect.left + 20 + us.col * (blockWidth + padding);
+    const leftOffset = (closest.element.offsetWidth / 2) - 40; // slightly left of center
+    const leftEdge = colRect.left - boardRect.left + leftOffset + us.col * (blockWidth + padding);
     block.style.left = leftEdge + 'px';
-    block.style.top = topStart + us.row * (blockHeight + padding) + 'px';
+    block.style.top = labelHeight + padding + us.row * (blockHeight + padding) + 'px';
     us.row++;
     if(us.row >= 10){ us.row = 0; us.col++; }
     board.appendChild(block);
-  } else if(block.dataset.type === 'rod'){
+  } 
+  else if(block.dataset.type === 'rod'){
     if(!closest.rowStacks) closest.rowStacks = [];
     if(closest.rowStacks.length === 0) closest.rowStacks.push(0);
     let currentRow = closest.rowStacks.length - 1;
     let rowCount = closest.rowStacks[currentRow];
     if(rowCount >= 10){ closest.rowStacks.push(0); currentRow++; rowCount=0; }
-
     block.style.left = colRect.left - boardRect.left + rowCount * (blockWidth + padding) + 'px';
-    block.style.top = topStart + currentRow * (blockHeight + padding) + 'px';
+    block.style.top = labelHeight + padding + (currentRow * (blockHeight + padding)) + 'px';
     closest.rowStacks[currentRow]++;
     board.appendChild(block);
-  } else if(block.dataset.type === 'flat'){
+  } 
+  else if(block.dataset.type === 'flat'){
     if(!closest.gridStacks) closest.gridStacks = {row:0,col:0};
     let gs = closest.gridStacks;
-    const leftEdge = colRect.left - boardRect.left + 5;
+    const leftEdge = colRect.left - boardRect.left + 5; // start left-aligned
     block.style.left = leftEdge + gs.col * (blockWidth + padding) + 'px';
-    block.style.top = topStart + gs.row * (blockHeight + padding) + 'px';
+    block.style.top = labelHeight + padding + gs.row * (blockHeight + padding) + 'px';
     gs.col++;
-    if(gs.col >= 2){ gs.col=0; gs.row++; }
+    if(gs.col >= 2){ gs.col=0; gs.row++; } // 2 per row
     board.appendChild(block);
   }
 }
 
-// --- Setup board ---
+// --- Create columns based on board mode ---
 function setupColumns(){
   board.innerHTML='';
   columns=[];
@@ -258,12 +241,14 @@ function setupColumns(){
   for(let i=0;i<count;i++){
     let col = document.createElement('div');
     col.classList.add('column');
+
     let label = document.createElement('div');
     label.classList.add('column-label');
     label.innerText = labels[i];
     col.appendChild(label);
+
     board.appendChild(col);
-    columns.push({element:col,center:0,stackHeight:0});
+    columns.push({element:col, center:0, stackHeight:0});
   }
 
   setTimeout(()=>{
@@ -284,16 +269,19 @@ document.getElementById('addFlat').addEventListener('click',()=>createBlock('fla
 
 // --- Reset ---
 document.getElementById('reset').addEventListener('click',()=>{
-  for(let type in counters){ counters[type].forEach(b=>b.remove()); counters[type]=[]; }
-  for(let i=0;i<50;i++) createBlock('unit');
-  for(let i=0;i<20;i++) createBlock('rod');
-  for(let i=0;i<10;i++) createBlock('flat');
+  for(let type in counters){
+    counters[type].forEach(b=>b.remove());
+    counters[type]=[];
+  }
+  for(let type in piles){
+    let startCount = type==='unit'?50:type==='rod'?20:10;
+    for(let i=0;i<startCount;i++) createBlock(type);
+  }
   setupColumns();
 });
 
-// --- Color updates for new blocks only ---
-colorAInput.addEventListener('change',()=>{});
-colorBInput.addEventListener('change',()=>{});
+// --- Board mode change ---
+boardModeSelect.addEventListener('change',setupColumns);
 
 // --- Initialize ---
 document.getElementById('reset').click();
@@ -301,6 +289,7 @@ document.getElementById('reset').click();
 
 </body>
 </html>
+
 
 
 
