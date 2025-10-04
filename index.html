@@ -159,7 +159,6 @@ function startDrag(e){
   document.addEventListener('touchend',up);
 }
 
-// --- Snap block to column if chart mode ---
 function snapToColumn(block){
   const mode = boardModeSelect.value;
   if(mode==='blank') return; // no snap
@@ -179,11 +178,12 @@ function snapToColumn(block){
 
   // Snap to column horizontally
   block.style.left = (closest.center - blockRect.width/2) + 'px';
-  // Snap to bottom of column
-  let columnBottom = rect.top + board.clientHeight - closest.stackHeight;
-  block.style.top = columnBottom - blockRect.height + 'px';
+  
+  // Snap from top of column
+  block.style.top = closest.stackHeight + 'px';
   closest.stackHeight += blockRect.height + 5; // stack spacing
 }
+
 
 // --- Create columns based on board mode ---
 function setupColumns(){
