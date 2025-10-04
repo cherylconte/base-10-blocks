@@ -44,7 +44,7 @@ button, select, input { font-size:14px; padding:5px; }
   pointer-events:none;
 }
 
-.block { position:absolute; cursor:grab; display:flex; justify-content:center; align-items:center; user-select:none; touch-action:none; transition:transform 0.1s; }
+.block { position:absolute; cursor:grab; display:flex; justify-content:center; align-items:center; user-select:none; touch-action:none; transition:transform 0.1s; background:#00b0f0; }
 
 .unit { width:20px; height:20px; }
 .rod { width:20px; height:200px; }
@@ -64,10 +64,6 @@ button, select, input { font-size:14px; padding:5px; }
 <h2>Interactive Base 10 Blocks with Place Value Chart</h2>
 
 <div id="controls">
-  <label>Unit Color: <input type="color" id="colorUnit" value="#00b0f0"></label>
-  <label>Rod Color: <input type="color" id="colorRod" value="#00b0f0"></label>
-  <label>Flat Color: <input type="color" id="colorFlat" value="#00b0f0"></label>
-  
   <label>Board Mode: 
     <select id="boardMode">
       <option value="blank">Blank Board</option>
@@ -106,16 +102,12 @@ function createBlock(type){
   let block = document.createElement('div');
   block.classList.add('block', type);
   block.dataset.type = type;
-  block.style.background = document.getElementById('color'+capitalize(type)).value;
   block.style.left = '0px';
   block.style.bottom = '0px';
   makeDraggable(block);
   piles[type].appendChild(block);
   counters[type].push(block);
 }
-
-// --- Capitalize helper ---
-function capitalize(str){ return str.charAt(0).toUpperCase()+str.slice(1); }
 
 // --- Make draggable ---
 function makeDraggable(block){
@@ -182,18 +174,17 @@ function snapToColumn(block){
   const labelHeight = closest.element.querySelector('.column-label').offsetHeight;
   const padding = 5;
 
- if(block.dataset.type === 'unit'){
-    // Vertical stacking with new column after 10, slightly offset to center
+  if(block.dataset.type === 'unit'){
+    // Vertical stacking with new column after 10, offset to center
     if(!closest.unitStacks) closest.unitStacks = {col:0, row:0};
     let us = closest.unitStacks;
 
     const colRect = closest.element.getBoundingClientRect();
-    const boardRect = board.getBoundingClientRect();
-    const leftEdge = colRect.left - boardRect.left + 20 + us.col * (blockWidth + 5); // offset from left
+    const leftEdge = colRect.left - boardRect.left + 20 + us.col * (blockWidth + padding); // 20px offset
     const topStart = labelHeight + 5;
 
     block.style.left = leftEdge + 'px';
-    block.style.top = topStart + us.row * (blockHeight + 5) + 'px';
+    block.style.top = topStart + us.row * (blockHeight + padding) + 'px';
 
     us.row++;
     if(us.row >= 10){
@@ -202,9 +193,6 @@ function snapToColumn(block){
     }
 
     board.appendChild(block);
-}
-
-
   } else if(block.dataset.type === 'rod'){
     // Horizontal stacking for Tens, 10 per row
     if(!closest.rowStacks) closest.rowStacks = [];
@@ -235,9 +223,8 @@ function snapToColumn(block){
 
     gs.col++;
     if(gs.col >= 2){ gs.col = 0; gs.row++; }
+    board.appendChild(block);
   }
-
-  board.appendChild(block);
 }
 
 // --- Create columns based on board mode ---
@@ -286,7 +273,7 @@ document.getElementById('reset').addEventListener('click',()=>{
     counters[type].forEach(b=>b.remove());
     counters[type]=[];
   }
-  // Starting piles: large numbers
+  // Starting piles: unlimited-ish
   for(let i=0;i<50;i++) createBlock('unit');
   for(let i=0;i<20;i++) createBlock('rod');
   for(let i=0;i<10;i++) createBlock('flat');
@@ -302,6 +289,7 @@ document.getElementById('reset').click();
 
 </body>
 </html>
+
 
 
 
