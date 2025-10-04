@@ -184,10 +184,25 @@ function snapToColumn(block){
 
   // --- Type-specific stacking ---
   if(block.dataset.type === 'unit'){
-    // Vertical stacking for Ones
-    block.style.left = (closest.center - blockWidth/2) + 'px';
-    block.style.top = closest.stackHeight + labelHeight + padding + 'px';
-    closest.stackHeight += blockHeight + padding;
+    // Vertical stacking with new column after 10
+    if(!closest.unitStacks) closest.unitStacks = {col:0, row:0};
+    let us = closest.unitStacks;
+
+    const colRect = closest.element.getBoundingClientRect();
+    const boardRect = board.getBoundingClientRect();
+    const leftEdge = colRect.left - boardRect.left + us.col * (blockWidth + 5); // shift for new column
+    const topStart = labelHeight + 5;
+
+    block.style.left = leftEdge + 'px';
+    block.style.top = topStart + us.row * (blockHeight + 5) + 'px';
+
+    us.row++;
+    if(us.row >= 10){ // start new column
+        us.row = 0;
+        us.col++;
+    }
+}
+
 
   } else if(block.dataset.type === 'rod'){
     // Horizontal stacking for Tens, 10 per row
