@@ -207,14 +207,21 @@ function snapToColumn(block){
     closest.rowStacks[currentRow]++;
 
   } else if(block.dataset.type === 'flat'){
-    // Hundreds: 2 per row
+    // Hundreds: 2 per row, aligned to left of column
     if(!closest.gridStacks) closest.gridStacks = {row:0, col:0};
     let gs = closest.gridStacks;
-    block.style.left = closest.center - (blockWidth + padding)/2 + gs.col * (blockWidth + padding) + 'px';
-    block.style.top = labelHeight + padding + gs.row * (blockHeight + padding) + 'px';
+
+    const colRect = closest.element.getBoundingClientRect();
+    const boardRect = board.getBoundingClientRect();
+    const leftEdge = colRect.left - boardRect.left + 5; // 5px padding from left
+
+    block.style.left = leftEdge + gs.col * (blockWidth + 5) + 'px';
+    block.style.top = labelHeight + 5 + gs.row * (blockHeight + 5) + 'px';
+
     gs.col++;
     if(gs.col >= 2){ gs.col = 0; gs.row++; }
-  }
+}
+
 
   board.appendChild(block);
 }
