@@ -30,7 +30,7 @@ button, select, input { font-size:14px; padding:5px; }
   position:relative; 
   display:flex; 
   flex-direction:column-reverse; 
-  align-items:center; 
+  align-items:flex-start; 
 }
 .column:first-child { border-left:none; }
 
@@ -46,9 +46,9 @@ button, select, input { font-size:14px; padding:5px; }
 
 .block { position:absolute; cursor:grab; display:flex; justify-content:center; align-items:center; user-select:none; touch-action:none; transition:transform 0.1s; }
 
-.unit { width:20px; height:20px; transform-style:preserve-3d; }
-.rod { width:20px; height:200px; transform-style:preserve-3d; }
-.flat { width:200px; height:200px; transform-style:preserve-3d; }
+.unit { width:20px; height:20px; }
+.rod { width:20px; height:200px; }
+.flat { width:200px; height:200px; }
 
 .block::before {
     content:'';
@@ -64,9 +64,9 @@ button, select, input { font-size:14px; padding:5px; }
 <h2>Interactive Base 10 Blocks with Place Value Chart</h2>
 
 <div id="controls">
-  <label>Unit Color: <input type="color" id="colorUnit" value="#ff0000"></label>
+  <label>Unit Color: <input type="color" id="colorUnit" value="#00b0f0"></label>
   <label>Rod Color: <input type="color" id="colorRod" value="#00b0f0"></label>
-  <label>Flat Color: <input type="color" id="colorFlat" value="#ffff00"></label>
+  <label>Flat Color: <input type="color" id="colorFlat" value="#00b0f0"></label>
   
   <label>Board Mode: 
     <select id="boardMode">
@@ -159,7 +159,7 @@ function startDrag(e){
   document.addEventListener('touchend',up);
 }
 
-// --- Snap block to column based on type ---
+// --- Snap block to column ---
 function snapToColumn(block){
   const mode = boardModeSelect.value;
   if(mode==='blank') return;
@@ -182,27 +182,23 @@ function snapToColumn(block){
   const labelHeight = closest.element.querySelector('.column-label').offsetHeight;
   const padding = 5;
 
-  // --- Type-specific stacking ---
   if(block.dataset.type === 'unit'){
     // Vertical stacking with new column after 10
     if(!closest.unitStacks) closest.unitStacks = {col:0, row:0};
     let us = closest.unitStacks;
 
     const colRect = closest.element.getBoundingClientRect();
-    const boardRect = board.getBoundingClientRect();
-    const leftEdge = colRect.left - boardRect.left + us.col * (blockWidth + 5); // shift for new column
-    const topStart = labelHeight + 5;
+    const leftEdge = colRect.left - boardRect.left + us.col * (blockWidth + padding);
+    const topStart = labelHeight + padding;
 
     block.style.left = leftEdge + 'px';
-    block.style.top = topStart + us.row * (blockHeight + 5) + 'px';
+    block.style.top = topStart + us.row * (blockHeight + padding) + 'px';
 
     us.row++;
-    if(us.row >= 10){ // start new column
+    if(us.row >= 10){
         us.row = 0;
         us.col++;
     }
-}
-
 
   } else if(block.dataset.type === 'rod'){
     // Horizontal stacking for Tens, 10 per row
@@ -222,21 +218,19 @@ function snapToColumn(block){
     closest.rowStacks[currentRow]++;
 
   } else if(block.dataset.type === 'flat'){
-    // Hundreds: 2 per row, aligned to left of column
+    // Hundreds: 2 per row, aligned left
     if(!closest.gridStacks) closest.gridStacks = {row:0, col:0};
     let gs = closest.gridStacks;
 
     const colRect = closest.element.getBoundingClientRect();
-    const boardRect = board.getBoundingClientRect();
-    const leftEdge = colRect.left - boardRect.left + 5; // 5px padding from left
+    const leftEdge = colRect.left - boardRect.left + 5; // padding from left
 
-    block.style.left = leftEdge + gs.col * (blockWidth + 5) + 'px';
-    block.style.top = labelHeight + 5 + gs.row * (blockHeight + 5) + 'px';
+    block.style.left = leftEdge + gs.col * (blockWidth + padding) + 'px';
+    block.style.top = labelHeight + padding + gs.row * (blockHeight + padding) + 'px';
 
     gs.col++;
     if(gs.col >= 2){ gs.col = 0; gs.row++; }
-}
-
+  }
 
   board.appendChild(block);
 }
@@ -287,10 +281,10 @@ document.getElementById('reset').addEventListener('click',()=>{
     counters[type].forEach(b=>b.remove());
     counters[type]=[];
   }
-  for(let type in piles){
-    let startCount = type==='unit'?50:type==='rod'?20:10;
-    for(let i=0;i<startCount;i++) createBlock(type);
-  }
+  // Starting piles: large numbers
+  for(let i=0;i<50;i++) createBlock('unit');
+  for(let i=0;i<20;i++) createBlock('rod');
+  for(let i=0;i<10;i++) createBlock('flat');
   setupColumns();
 });
 
@@ -303,6 +297,7 @@ document.getElementById('reset').click();
 
 </body>
 </html>
+
 
 
 
